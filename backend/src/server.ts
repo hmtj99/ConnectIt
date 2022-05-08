@@ -1,27 +1,27 @@
 import express from 'express';
 import 'dotenv/config';
 import { TelegramService } from './services/telegram.service';
-import { googleCalendarService } from './services/googleCalendar.service';
-import { googleClassroomService } from './services/googleClassroom.service';
 import { mongoConnect } from './connection/mongoConnection';
 import { UserModel } from './models/user.model';
 import passport from 'passport';
 import session from 'express-session';
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { User } from './interfaces';
-import mongoose from 'mongoose';
 import { CredentialModel } from './models/credentials.model';
-// import { twitterService } from './services/twitter.service';
 import { TokenRouter } from './routes/token.router';
 import { google } from 'googleapis';
 import { tokenService } from './services/token.service';
 import { IntegrationRouter } from './routes/integration.router';
+import { CalendarRouter } from './routes/calendar.route';
+import { ClassroomRouter } from './routes/classroom.route';
+import path from 'path';
+import { RedditService } from './services/reddit.service';
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
 	secret: 'cookie_secret',
@@ -31,17 +31,16 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 passport.serializeUser((user: User, done) => {
 	done(null, user);
 });
 
 passport.deserializeUser((obj, done) => {
-	console.log(obj);
 	done(null, obj);
-	// UserModel.find({email:obj.email}).then(user => {
-	// 	done(null, user);
-	// });
 });
 
 passport.use(new GoogleStrategy({
@@ -52,12 +51,7 @@ passport.use(new GoogleStrategy({
 	state: true
 },
 async function (accessToken, refreshToken, profile, cb) {
-	// console.log(accessToken);
-	// console.log(refreshToken);
-	// console.log(profile);
-
 	const user = await UserModel.findOne({ googleId: profile.id });
-	console.log('user found - ', user);
 	if (!user) {
 		console.log(`User with id:${profile.id} not found`);
 		const userDoc = new UserModel({
@@ -73,11 +67,11 @@ async function (accessToken, refreshToken, profile, cb) {
 
 app.use('/token', TokenRouter);
 app.use('/integration', IntegrationRouter);
+app.use('/calendar', CalendarRouter);
+app.use('/classroom', ClassroomRouter);
 
 app.get('/', (req, res) => {
-	console.log(req.user);
-	console.log(req.isAuthenticated);
-	res.sendFile('/Users/hemantjain/Desktop/connectIt/frontend/index.html');
+	res.render('login');
 });
 
 app.get('/generateAuthUrl', (req, res) => {
@@ -115,12 +109,12 @@ app.get('/setGoogleToken', async (req, res) => {
 		provider = 'googleCalendar';
 		break;
 	}
-	case 'https://www.googleapis.com/auth/classroom.announcements https://www.googleapis.com/auth/classroom.courses': {
+	case 'https://www.googleapis.com/auth/classroom.courses https://www.googleapis.com/auth/classroom.announcements': {
 		provider = 'googleClassroom';
 		break;
 	}
 	default: {
-		return res.json({success:false, error: 'Invalid scope'});
+		return res.json({ success: false, error: `Invalid scope: ${scope}` });
 	}
 	}
 
@@ -129,77 +123,37 @@ app.get('/setGoogleToken', async (req, res) => {
 		user: req.user,
 		provider
 	})
-	return res.json(payload);
+	return res.render('credentials');
 })
 
 app.get('/redirectLogin', passport.authenticate('google', {
-	successReturnToOrRedirect: '/',
+	successReturnToOrRedirect: '/integration/dashboard',
 	failureRedirect: '/login'
 }))
 
-// app.post('/uploadFile', async (req,res) => {
-// 	console.log("uploading image");
-// 	await googleDriveService.uploadFile();
-// 	return res.send('File uploaded successfully');
-// })
-
-app.post('/courses', async (req, res) => {
-	console.log(req.user);
-	const courses = await googleClassroomService.listCourses();
-	return res.json({ courses });
-})
-
-app.post('/createUser', async (req, res) => {
-	const { email, name } = req.body;
-	const doc = new UserModel({
-		email,
-		name
-	});
-	const response = await doc.save();
-	return res.json(response);
-})
-
-app.post('/addTelegramCredentials', async (req, res) => {
-	const creds = req.body;
-	const user = req.user as any;
-	const credsDoc = new CredentialModel({
-		userId: user._id,
-		provider: 'telegram',
-		credentials: {
-			token: creds.token
-		}
-	});
-	await credsDoc.save();
-	return res.json(credsDoc);
+app.get('/logout', function (req, res) {
+	req.logout();
+	res.redirect('/');
 });
 
-app.post('/startTelegramBot', async (req, res) => {
-	const user = req.user as any;
-	console.log('/startTelegramBot signed user - ', user);
-	const creds = await CredentialModel.findOne({ userId: user._id, provider: 'telegram' });
-	console.log('fetched creds = ', creds);
-	const telegramService = new TelegramService(creds.credentials.token, req.user);
-	telegramService.listen();
-	return res.send("Telegram bot listening!!!");
-})
-
-// app.get('/getUser', async (req, res) => {
-// 	const user = await twitterService.getUser();
-// 	return res.json(user);
-// })
-
-// app.get('/postTweet', async (req,res) => {
-// 	const payload = await twitterService.postTweet();
-// 	return res.json(payload);
-// })
+async function startTelegramBots(): Promise<void> {
+	try {
+		const telegramCreds = await CredentialModel.find({ provider: 'telegram' }).lean().exec();
+		for (const telegramCred of telegramCreds) {
+			const { credentials, userId } = telegramCred;
+			const user = await UserModel.findById(userId).lean();
+			const telegramService = new TelegramService(credentials.token, user);
+			telegramService.listen();
+		}
+	} catch (error) {
+		throw new Error(`Unable to start telegram bots:${error.message}`);
+	}
+}
 
 app.get('/login', passport.authenticate('google'));
 
 app.listen(port, async () => {
-	// telegramService.listen();
 	await mongoConnect();
-	// googleDriveService.authorize(); 
-	// googleCalendarService.authorize();
-	// googleClassroomService.authorize();
+	await startTelegramBots();
 	return console.log(`Express is listening at http://localhost:${port}`);
 });

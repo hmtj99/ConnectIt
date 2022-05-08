@@ -1,0 +1,48 @@
+<%- include('partials/header') %>
+
+    <section class="py-5 text-center container">
+        <div class="row py-lg-5">
+            <div class="col-lg-6 col-md-8 mx-auto">
+                <h1 class="fw-light">Manage Your Integrations</h1>
+                <p class="lead text-muted">Create and manage your integrations and credentials using this dashboard</p>
+                <p>
+                    <a href="/integration/listIntegrations" class="btn btn-primary my-2">Add new integration</a>
+                    <a href="/token/tokenPage" class="btn btn-secondary my-2">Manage Credentials</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div class="album py-5 bg-light">
+        <div class="container">
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                <% for(let [targetProvider, integrationsList] of Object.entries(integrations)) { %>
+                    <div class="col">
+                        <div class="card shadow-sm">
+                            <img src="/public/assets/img/dashboard/<%= targetProvider %>.png" height="225"
+                                class="card-img-top border">
+                            <div class="card-body">
+                                <ul class="list-group overflow-scroll" style="height: 166px">
+                                    <% integrationsList.forEach((integration) => { %>
+                                    <li class="list-group-item list-group-item-action">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span><%= integration.name %></span>
+                                            <div class="btn-group">
+                                                <a href="/integration/editIntegration?integrationId=<%= integration._id %>" class="btn btn-outline-primary">View</a>
+                                                <a href="/integration/removeIntegration?integrationId=<%= integration._id %>" class="btn btn-outline-danger">Delete</a>
+                                            </div>
+                                        </div>
+                                    </li>   
+                                    <% }) %>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+            </div>
+        </div>
+    </div>
+    </main>
+
+    <%- include('partials/footer') %>

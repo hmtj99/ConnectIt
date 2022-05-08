@@ -24,5 +24,3 @@ export class TwitterService {
 		return res;
 	}
 }
-
-// export const twitterService = new TwitterService();

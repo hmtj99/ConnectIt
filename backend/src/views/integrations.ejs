@@ -1,0 +1,29 @@
+<%- include('partials/header') %>
+
+    <div class="container">
+        <h5 class="display-5 text-center">Add new integrations</h5>
+    </div>
+    <hr>
+
+    <div class="container border rounded pt-3 pb-3 ps-5 pe-5">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+          <% integrationInfo.forEach( function (integration){ %>
+            <div class="col">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h5 class="card-title"><%= integration.integrationName %></h5>
+                  <p class="card-text"><%= integration.integrationDescription %></p>
+                  <form method="POST" action="http://localhost:3000/integration/createIntegration">
+                        <input type="hidden" name="formFields" class="form-control" id="formFields" value="<%= integration.formFields %>">
+                        <input type="hidden" name="integrationType" class="form-control" id="integrationType" value="<%= integration.integrationType %>">
+                        <input type="hidden" name="integrationName" class="form-control" id="integrationName" value="<%= integration.integrationName %>">
+                        <button type="submit" class="btn btn-primary">Add Integration</button>
+                </form>
+                </div>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+    </div>
+
+    <%- include('partials/footer') %>

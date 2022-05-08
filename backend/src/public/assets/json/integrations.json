@@ -1,0 +1,38 @@
+[
+    {
+        "integrationName": "Telegram Twitter Post",
+        "integrationDescription": "Post a tweet on twitter easily using a telegram message",
+        "integrationType": "telegramTwitterPost",
+        "formFields": ["triggerPattern", "replyPattern"]
+    },
+    {
+        "integrationName": "Telegram Twitter Image Post",
+        "integrationDescription": "Post a tweet with an Image on twitter easily using a telegram message",
+        "integrationType": "telegramTwitterImagePost",
+        "formFields": ["triggerPattern", "replyPattern"]
+    },
+    {
+        "integrationName": "Telegram Google Calendar Scheduling",
+        "integrationDescription": "Schedule events in your personal or professional calendars via telegram messsages",
+        "integrationType": "telegramGoogleCalendarIntegration",
+        "formFields": ["triggerPattern", "replyPattern", "calendarId"]
+    },
+    {
+        "integrationName": "Telegram Google Drive Integration",
+        "integrationDescription": "Upload files directly to your Google Drive through Telegram Messages",
+        "integrationType": "telegramGoogleDriveIntegration",
+        "formFields": ["triggerPattern", "replyPattern", "folderId"]
+    },
+    {
+        "integrationName": "Telegram Google Classroom Announcement",
+        "integrationDescription": "Make announcements on Google Classroom via Telegram Messages",
+        "integrationType": "telegramGoogleClassroomAnnouncementIntegration",
+        "formFields": ["triggerPattern", "replyPattern", "courseId"]
+    },
+    {
+        "integrationName": "Telegram Reddit Post",
+        "integrationDescription": "Post stuff to Reddit via Telegram Messages",
+        "integrationType": "telegramRedditPost",
+        "formFields": ["triggerPattern", "replyPattern"]
+    }
+]

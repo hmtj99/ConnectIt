@@ -1,5 +1,4 @@
 import { calendar_v3, google } from 'googleapis';
-import fs from 'fs';
 import { OAuth2Client } from 'google-auth-library';
 import { CreateCalendarEventInput } from '../interfaces';
 import { nanoid } from 'nanoid';
@@ -9,14 +8,15 @@ export class GoogleCalendarService {
 	private SCOPES;
 	private calendar: calendar_v3.Calendar;
 
-	constructor() {
+	constructor(credentials) {
 		this.oauth2Client = new google.auth.OAuth2(
 			process.env.GOOGLE_CLIENT_ID,
 			process.env.GOOGLE_CLIENT_SECRET,
 			"http://localhost:3000/authorizeGoogle",
 		)
 		this.SCOPES = ['https://www.googleapis.com/auth/calendar'];
-		this.setAccessToken();
+		this.setAccessToken(credentials);
+		this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
 	}
 
 	authorize() {
@@ -27,31 +27,9 @@ export class GoogleCalendarService {
 		console.log(`url to authenticate is ${url}`);
 	}
 
-	async setAccessToken(code?: any) {
-		const tokens = await fs.readFileSync('calendarTokens.json').toString();
-		if(tokens.length > 0){
-			this.oauth2Client.setCredentials(JSON.parse(tokens));
-			console.log('access token set');
-			this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
-		} else {
-			const { tokens } = await this.oauth2Client.getToken(code);
-			console.log('tokens - ', tokens);
-			fs.writeFileSync('calendarTokens.json', JSON.stringify(tokens));
-
-			// this.authorize();
-			// const rl = readline.createInterface({
-			// 	input: process.stdin,
-			// 	output: process.stdout,
-			// });
-			// rl.question("Enter the code here:", async (code) => {
-			// 	const { tokens } = await this.oauth2Client.getToken(code);
-			// 	console.log('tokens - ', tokens);
-			// 	fs.writeFileSync('calendarTokens.json', JSON.stringify(tokens));
-			// 	this.oauth2Client.setCredentials(tokens);
-			// 	console.log('access token set');
-			// 	this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
-			// })
-		}
+	async setAccessToken(credentials: any) {
+		this.oauth2Client.setCredentials(credentials);
+		console.log(`Google Calendar access tokens have been set`);
 	}
 
 	async getCalendarEvent(createCalendarEventInput: CreateCalendarEventInput){
@@ -88,6 +66,14 @@ export class GoogleCalendarService {
 		console.log(res);
 		return res.data.hangoutLink;
 	}
-}
 
-export const googleCalendarService = new GoogleCalendarService();
+	async getCalendarList(){
+		try{
+			const calendars = await this.calendar.calendarList.list();
+			console.log(calendars);
+			return calendars.data;
+		} catch(error){
+			throw new Error(`Error while listing calendars: ${error.message}`);
+		}
+	}
+}

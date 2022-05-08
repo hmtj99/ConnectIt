@@ -16,6 +16,7 @@ export interface CreateCalendarEventInput{
 export interface SendAnnouncementToGoogleClassroomInput{
     courseId: string;
     text: string;
+    materials?: any[]
 }
 
 export interface User {
@@ -36,6 +37,7 @@ export interface Integration {
     targetProvider: string;
     metadata: any;
     type: string;
+    name: string;
 }
 
 export interface SetTokenForUserInput {
@@ -45,6 +47,7 @@ export interface SetTokenForUserInput {
 }
 
 export interface CreateIntegrationInput {
+    name: string;
     user: any;
     sourceProvider: string;
     targetProvider: string;
@@ -54,4 +57,10 @@ export interface CreateIntegrationInput {
 
 export interface RemoveIntegrationInput {
     integrationId: string;
+}
+
+export interface PostToSubredditInput {
+    subreddit: string;
+    title: string;
+    text: string;
 }

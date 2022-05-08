@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+<div class="container">
+<main>
+    <div class="py-5 text-center">
+        <h2>Create Integration</h2>
+    </div>
+
+    <div class="row g-5">
+        <div >
+            <h4 class="mb-3">Add <%= metadata.integrationName %> Integration</h4>
+            <form class="border rounded p-5" method="POST" action="<%= formSubmissionLink %>">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="name" class="form-label">Integration Name</label>
+                        <div class="input-group has-validation">
+                            <input type="text" name="name" class="form-control" id="name" placeholder="Name to uniquely identify your integration"
+                                required>
+                            <div class="invalid-feedback">
+                                Integration Name is required
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="triggerPattern" class="form-label">Trigger Pattern</label>
+                        <div class="input-group has-validation">
+                            <input type="text" name="triggerPattern" class="form-control" id="triggerPattern" placeholder="The pattern which will trigger the integration"
+                                required>
+                            <div class="invalid-feedback">
+                                Trigger Pattern is required
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="text" class="form-label">Reply Pattern</label>
+                        <input type="text" name="replyPattern" class="form-control" id="replyPattern" placeholder="The reply you want to receive">
+                        <div class="invalid-feedback">
+                            Reply Pattern is required
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="text" class="form-label">Subreddit</label>
+                        <input type="text" name="subreddit" class="form-control" id="subreddit" placeholder="The subreddit you wanna work with">
+                        <div class="invalid-feedback">
+                            Subreddit is required
+                        </div>
+                    </div>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <button class="w-50 btn btn-primary btn-lg" type="submit">Add Integration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+</div>
+<%- include('../partials/footer') %>

@@ -27,15 +27,7 @@ export class GoogleDriveService {
 		console.log(`url to authenticate is ${url}`);
 	}
 
-	setAccessToken(credentials?: any) {
-		// const { tokens } = await this.oauth2Client.getToken(code);
-		// console.log('tokens - ', tokens);
-		// fs.writeFileSync('tokens.txt', JSON.stringify(tokens));
-		// const credDoc = await CredentialModel.findOne({userId: user._id, provider: 'googleDrive'});
-		// if(!credDoc){
-		// 	throw new Error('No Google Drive credentials found for the user');
-		// }
-		// console.log(credDoc);
+	setAccessToken(credentials: any) {
 		this.oauth2Client.setCredentials(credentials);
 		console.log(`Google Drive access tokens have been set`);
 	}
@@ -56,20 +48,42 @@ export class GoogleDriveService {
 		console.log(res);
 	}
 
-	async uploadFileToGoogleDrive(uploadFileToGoogleDriveInput: UploadFileToGoogleDriveInput) {
-		const {mimeType, fileName} = uploadFileToGoogleDriveInput;
+	async uploadFileToGoogleDrive(uploadFileToGoogleDriveInput: UploadFileToGoogleDriveInput): Promise<any> {
+		const {mimeType, fileName, parentFolderId} = uploadFileToGoogleDriveInput;
 		const media = {
 			mimeType,
 			body: fs.createReadStream(fileName)
 		};
-		const res = await this.drive.files.create({
+		const fileMetadata = await this.drive.files.create({
 			requestBody: {
 				name: fileName,
 				mimeType,
-				parents: ["1sdf5rU1knvVubKQLFiJZ2N1uQaG7AGoa"]
+				parents: [parentFolderId]
 			},
 			media,
 		});
 		console.log('File uploaded successfully!');
+		return fileMetadata;
+	}
+
+	async createClassroomFilesFolderAndUploaadFile(input:UploadFileToGoogleDriveInput): Promise<any> {
+		const {mimeType, fileName} = input;
+		const folderMetadata = await this.drive.files.create({
+			requestBody: {
+				name: 'ConnectIt Classroom Files',
+				mimeType: 'application/vnd.google-apps.folder'
+			},
+			fields: 'id'
+		});
+		console.log(`folder created with id:${folderMetadata.data.id}`);
+
+		const fileMetadata = await this.uploadFileToGoogleDrive({
+			fileName,
+			mimeType,
+			parentFolderId: folderMetadata.data.id
+		});
+
+		console.log('fileMetadata - ', fileMetadata);
+		return fileMetadata;
 	}
 }

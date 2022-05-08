@@ -4,8 +4,9 @@ import { IntegrationModel } from "../models/integration.model";
 class IntegrationService {
 	async createIntegration(createIntegrationInput: CreateIntegrationInput): Promise<any> {
 		try {
-			const {user, metadata, sourceProvider, targetProvider, type} = createIntegrationInput;
+			const {user, metadata, sourceProvider, targetProvider, type, name} = createIntegrationInput;
 			const integrationDoc = new IntegrationModel({
+				name,
 				userId: user._id,
 				sourceProvider,
 				targetProvider,
